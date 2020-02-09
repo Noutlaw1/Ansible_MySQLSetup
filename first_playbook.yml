@@ -1,0 +1,42 @@
+---
+
+- hosts: mysqlservers
+  become: yes
+  tasks:
+   - name: Install mysql
+     apt:
+       name: mysql-server
+       state: latest
+       update_cache: true
+     become: true
+   - name: Install pip via apt
+     apt:
+       name: python-pip
+       state: latest
+       update_cache: true
+   - name: Install other dependencies
+     apt: name={{ item }} state=installed
+     with_items:
+       - python-dev
+       - python-mysqldb
+       - libmysqlclient-dev
+   - name: Install Python MySQL module
+     pip: name=MySQL-python
+   - name: Edit mysql bind address
+     ini_file:  dest=/etc/mysql/mysql.conf.d/mysqld.cnf
+                section=mysqld
+                option=bind-address
+                value=0.0.0.0
+     with_items: mysql.bind
+   - name: Copy MYSQL script to remote host
+     copy: src=/etc/ansible/create_user.sql dest=/tmp
+   - name: Import Mysql script
+     mysql_db: 
+               login_user: "root"
+               login_password: "Password1!"
+               name: mysql
+               state: import
+               target: /tmp/create_user.sql
+   - name: Restart MySQL
+     service: name=mysql
+              state=restarted

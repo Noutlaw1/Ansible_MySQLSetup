@@ -1,5 +1,5 @@
 ---
-
+#Installs mysql and dependencies on client. Once that is done, it changes some configs, then creates a user by pushing a sql file to the client and running it.
 - hosts: mysqlservers
   become: yes
   tasks:
